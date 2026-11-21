@@ -491,6 +491,17 @@ class Reviver:
             and value.get("id") is not None
         ):
             if self.ignore_unserializable_fields:
+                # An empty allowlist forbids every object, even one that would
+                # otherwise be skipped as unserializable.
+                if (
+                    self.allowed_class_paths is not None
+                    and not self.allowed_class_paths
+                ):
+                    msg = (
+                        f"Deserialization of {value} is not allowed: "
+                        "allowed_objects=[] disallows all objects."
+                    )
+                    raise ValueError(msg)
                 return None
             msg = (
                 "Trying to load an object that doesn't implement "
