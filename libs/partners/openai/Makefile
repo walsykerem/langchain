@@ -26,7 +26,7 @@ test tests:
 	@if [ ! -f tiktoken_cache/fb374d419588a4632f3f557e76b4b70aebbca790 ]; then \
 		curl -o tiktoken_cache/fb374d419588a4632f3f557e76b4b70aebbca790 https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken; \
 	fi
-	TIKTOKEN_CACHE_DIR=tiktoken_cache uv run --group test pytest $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
+	TIKTOKEN_CACHE_DIR=tiktoken_cache env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --group test pytest $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
 
 # Runs the full integration suite against the locked SDK, then smokes a single
 # live request on each supported openai major so the httpx (2.x) and httpx2

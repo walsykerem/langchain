@@ -14,7 +14,7 @@ PYTEST_EXTRA ?=
 integration_test integration_tests: TEST_FILE=$(INTEGRATION_TEST_FILE)
 
 test tests:
-	uv run --group test pytest $(PYTEST_EXTRA) $(TEST_FILE)
+	env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --group test pytest $(PYTEST_EXTRA) $(TEST_FILE)
 
 integration_test integration_tests:
 	uv run --group test --group test_integration pytest $(TEST_FILE)

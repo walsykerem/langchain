@@ -14,7 +14,7 @@ integration_test integration_tests: TEST_FILE=tests/integration_tests/
 SDK_SMOKE_TEST = tests/integration_tests/test_chat_models.py::test_stream
 
 test tests:
-	uv run --group test pytest -vvv $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
+	env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --group test pytest -vvv $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
 
 # Smoke each supported anthropic major first: 0.x is backed by `httpx`, 1.x by
 # `httpx2`, and uv.lock only ever resolves one of them.

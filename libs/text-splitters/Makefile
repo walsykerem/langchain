@@ -11,7 +11,7 @@ PYTEST_EXTRA ?=
 UV_FROZEN = true
 
 test tests:
-	uv run --group test pytest -n auto $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
+	env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --group test pytest -n auto $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
 
 integration_test integration_tests:
 	uv run --group test --group test_integration pytest tests/integration_tests/

@@ -38,7 +38,7 @@ coverage_agents:
 		--cov-report=html:htmlcov \
 
 test:
-	make start_services && LANGGRAPH_TEST_FAST=0 uv run --no-sync --active --group test pytest -n auto $(PYTEST_EXTRA) --benchmark-disable --disable-socket --allow-unix-socket $(TEST_FILE) --cov-report term-missing:skip-covered --snapshot-update; \
+	make start_services && LANGGRAPH_TEST_FAST=0 env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --no-sync --active --group test pytest -n auto $(PYTEST_EXTRA) --benchmark-disable --disable-socket --allow-unix-socket $(TEST_FILE) --cov-report term-missing:skip-covered --snapshot-update; \
 	EXIT_CODE=$$?; \
 	make stop_services; \
 	exit $$EXIT_CODE

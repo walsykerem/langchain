@@ -22,8 +22,9 @@ coverage:
 		--cov-report term-missing:skip-covered \
 		$(TEST_FILE)
 
+# Unit tests must not inherit CI tracing credentials, which can leak keys.
 test tests:
-	uv run --group test pytest -n auto --benchmark-disable $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
+	env -u LANGCHAIN_TRACING_V2 -u LANGCHAIN_API_KEY -u LANGSMITH_API_KEY -u LANGSMITH_TRACING -u LANGCHAIN_PROJECT uv run --group test pytest -n auto --benchmark-disable $(PYTEST_EXTRA) --disable-socket --allow-unix-socket $(TEST_FILE)
 
 extended_tests:
 	uv run --group test pytest $(PYTEST_EXTRA) --disable-socket --allow-unix-socket --only-extended tests/unit_tests
