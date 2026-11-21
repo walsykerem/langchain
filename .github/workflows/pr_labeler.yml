@@ -64,8 +64,11 @@ jobs:
 
       - name: Verify App token
         if: github.event.action == 'opened'
+        # Pass via env so the token never expands into the shell script body.
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          if [ -z "${{ steps.app-token.outputs.token }}" ]; then
+          if [ -z "$APP_TOKEN" ]; then
             echo "::error::GitHub App token generation failed — cannot classify contributor"
             exit 1
           fi
