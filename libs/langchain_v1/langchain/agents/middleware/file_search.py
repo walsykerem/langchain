@@ -11,6 +11,7 @@ import json
 import operator
 import os
 import re
+import signal
 import subprocess
 from contextlib import suppress
 from datetime import UTC, datetime
@@ -361,40 +362,66 @@ class FilesystemFileSearchMiddleware(AgentMiddleware[AgentState[ResponseT], Cont
         regex = re.compile(pattern)
         results: dict[str, list[tuple[int, str]]] = {}
 
-        # Walk directory tree without following symlinked directories so traversal
-        # cannot leave the root via a symlinked subdirectory.
-        for walk_root, _dirs, files in os.walk(base_full, followlinks=False):
-            for name in files:
-                file_path = Path(walk_root) / name
+        class _SearchTimeout(Exception):
+            pass
 
-                # Re-check containment after resolving so an in-root symlinked file
-                # pointing outside the root is never read.
-                if not _is_within_root(file_path, self.root_path):
-                    continue
+        def _raise_timeout(signum: int, frame: object) -> None:
+            raise _SearchTimeout
 
-                if not file_path.is_file():
-                    continue
+        # A pathological pattern can make `re` backtrack forever; cap the whole
+        # fallback so it returns the matches gathered so far. SIGALRM only fires
+        # on the main thread, so other threads keep the original unbounded path.
+        try:
+            previous_handler = signal.signal(signal.SIGALRM, _raise_timeout)
+        except ValueError:
+            bounded = False
+        else:
+            bounded = True
+            previous_timer = signal.getitimer(signal.ITIMER_REAL)
+            signal.setitimer(signal.ITIMER_REAL, 2.0)
 
-                # Check include filter
-                if include and not _match_include_pattern(file_path.name, include):
-                    continue
+        try:
+            # Walk directory tree without following symlinked directories so traversal
+            # cannot leave the root via a symlinked subdirectory.
+            for walk_root, _dirs, files in os.walk(base_full, followlinks=False):
+                for name in files:
+                    file_path = Path(walk_root) / name
 
-                # Skip files that are too large
-                if file_path.stat().st_size > self.max_file_size_bytes:
-                    continue
+                    # Re-check containment after resolving so an in-root symlinked file
+                    # pointing outside the root is never read.
+                    if not _is_within_root(file_path, self.root_path):
+                        continue
 
-                try:
-                    content = file_path.read_text()
-                except (UnicodeDecodeError, PermissionError):
-                    continue
+                    if not file_path.is_file():
+                        continue
 
-                # Search content
-                for line_num, line in enumerate(content.splitlines(), 1):
-                    if regex.search(line):
-                        virtual_path = "/" + str(file_path.relative_to(self.root_path))
-                        if virtual_path not in results:
-                            results[virtual_path] = []
-                        results[virtual_path].append((line_num, line))
+                    # Check include filter
+                    if include and not _match_include_pattern(file_path.name, include):
+                        continue
+
+                    # Skip files that are too large
+                    if file_path.stat().st_size > self.max_file_size_bytes:
+                        continue
+
+                    try:
+                        content = file_path.read_text()
+                    except (UnicodeDecodeError, PermissionError):
+                        continue
+
+                    # Search content
+                    for line_num, line in enumerate(content.splitlines(), 1):
+                        if regex.search(line):
+                            virtual_path = "/" + str(file_path.relative_to(self.root_path))
+                            if virtual_path not in results:
+                                results[virtual_path] = []
+                            results[virtual_path].append((line_num, line))
+        except _SearchTimeout:
+            pass
+        finally:
+            if bounded:
+                signal.setitimer(signal.ITIMER_REAL, 0)
+                signal.signal(signal.SIGALRM, previous_handler)
+                signal.setitimer(signal.ITIMER_REAL, *previous_timer)
 
         return results
 
