@@ -1,6 +1,7 @@
+# Hook sources are pinned to immutable commits so a moved tag cannot swap the executed code.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: 3298ddab3c13dd77d6ce1fc0baf97691430d84b0
     hooks:
       - id: no-commit-to-branch # prevent direct commits to protected branches
         args: ["--branch", "master"]
@@ -13,7 +14,7 @@ repos:
 
   # Text normalization hooks for consistent formatting
   - repo: https://github.com/sirosen/texthooks
-    rev: 0.6.8
+    rev: c1a669453f31baa33e32761cb670aa1f10141937
     hooks:
       - id: fix-smartquotes # replace curly quotes with straight quotes
       - id: fix-spaces # replace non-standard spaces (e.g., non-breaking) with regular spaces
