@@ -13,8 +13,9 @@ PYTEST_EXTRA ?=
 
 integration_test integration_tests: TEST_FILE=$(INTEGRATION_TEST_FILE)
 
+# Unit tests must stay offline; fail closed if a test opens a network socket.
 test tests:
-	uv run --group test pytest $(PYTEST_EXTRA) $(TEST_FILE)
+	uv run --group test pytest --disable-socket $(PYTEST_EXTRA) $(TEST_FILE)
 
 integration_test integration_tests:
 	uv run --group test --group test_integration pytest $(TEST_FILE)
