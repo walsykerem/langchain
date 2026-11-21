@@ -273,9 +273,8 @@ jobs:
           echo "LANGSMITH_METADATA=$metadata" >> "$GITHUB_ENV"
 
       - name: "🚀 Run Integration Tests"
-        # WARNING: All secrets below are available to every matrix job regardless of
-        # which package is being tested. This is intentional for simplicity, but means
-        # any test file could technically access any key. Only use for trusted code.
+        # Provider keys are shared here for reuse, so the run below drops any key the
+        # current package never references; tracing credentials are left in place.
         env:
           LANGCHAIN_TESTS_USER_AGENT: ${{ secrets.LANGCHAIN_TESTS_USER_AGENT }}
 
@@ -332,6 +331,24 @@ jobs:
           XAI_API_BASE: ${{ secrets.XAI_API_BASE }}
         run: |
           cd langchain/${{ matrix.working-directory }}
+          # Keep only credentials this package actually references in its test code.
+          for var in \
+            LANGSMITH_GATEWAY LANGSMITH_GATEWAY_API_KEY AI21_API_KEY \
+            ANTHROPIC_FILES_API_IMAGE_ID ANTHROPIC_FILES_API_PDF_ID \
+            ASTRA_DB_API_ENDPOINT ASTRA_DB_APPLICATION_TOKEN ASTRA_DB_KEYSPACE \
+            AZURE_OPENAI_API_VERSION AZURE_OPENAI_API_BASE AZURE_OPENAI_API_KEY \
+            AZURE_OPENAI_CHAT_DEPLOYMENT_NAME AZURE_OPENAI_LEGACY_CHAT_DEPLOYMENT_NAME \
+            AZURE_OPENAI_LLM_DEPLOYMENT_NAME AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME \
+            COHERE_API_KEY DEEPSEEK_API_KEY DEEPSEEK_API_BASE \
+            ES_URL ES_CLOUD_ID ES_API_KEY EXA_API_KEY FIREWORKS_API_KEY \
+            GOOGLE_API_KEY GOOGLE_SEARCH_API_KEY GOOGLE_CSE_ID \
+            GROQ_API_KEY GROQ_API_BASE HUGGINGFACEHUB_API_TOKEN \
+            MISTRAL_API_KEY MISTRAL_BASE_URL MONGODB_ATLAS_URI \
+            NOMIC_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OPENAI_API_KEY \
+            OPENROUTER_API_KEY PPLX_API_KEY TOGETHER_API_KEY TYPESAFE_API_KEY \
+            UPSTAGE_API_KEY WATSONX_APIKEY WATSONX_PROJECT_ID XAI_API_KEY XAI_API_BASE; do
+            grep -Rqs --include='*.py' --exclude-dir=.venv --exclude-dir=__pycache__ "$var" . || unset "$var"
+          done
           make integration_tests
 
       - name: "🧹 Clean up External Libraries"
