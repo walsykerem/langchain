@@ -1,4 +1,5 @@
-FROM python:3.15-slim-bookworm
+# Pinned by digest so a rebuild cannot pull a changed base image.
+FROM python:3.15-slim-bookworm@sha256:96599df822d0e1c6bb700014a05c7f3c8cabc6e0f7ff3c4f9f69cee033b4b5d9
 
 # Set environment variables for Python and uv
 ENV PYTHONUNBUFFERED=1 \

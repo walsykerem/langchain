@@ -16,9 +16,10 @@
   // Prevent the container from shutting down
   "overrideCommand": true,
   // Features to add to the dev container. More info: https://containers.dev/features
+  // Pinned by digest so a rebuild cannot pull a changed feature.
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/git:1@sha256:fd75977de13a9979000e0e78baf949adb0ca71d2398995fa22e0a36d7e7e7fe2": {},
+    "ghcr.io/devcontainers/features/github-cli:1@sha256:bd7ab48a832228f633239277552c30b353867fef2e5b037e064b4e64f0b843f2": {}
   },
   "containerEnv": {
     "UV_LINK_MODE": "copy"
