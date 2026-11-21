@@ -38,6 +38,7 @@ env:
   UV_NO_SYNC: "true"
 
 jobs:
+  # Reusable jobs below declare no secret inputs; forward no repository secrets.
   # This job analyzes which files changed and creates a dynamic test matrix
   # to only run tests/lints for the affected packages, improving CI efficiency
   build:
@@ -84,7 +85,6 @@ jobs:
     with:
       working-directory: ${{ matrix.job-configs.working-directory }}
       python-version: ${{ matrix.job-configs.python-version }}
-    secrets: inherit
 
   # Run unit tests only on packages that have changed files
   test:
@@ -98,7 +98,6 @@ jobs:
     with:
       working-directory: ${{ matrix.job-configs.working-directory }}
       python-version: ${{ matrix.job-configs.python-version }}
-    secrets: inherit
 
   # Test compatibility with different Pydantic versions for affected packages
   test-pydantic:
@@ -112,7 +111,6 @@ jobs:
     with:
       working-directory: ${{ matrix.job-configs.working-directory }}
       pydantic-version: ${{ matrix.job-configs.pydantic-version }}
-    secrets: inherit
 
   # Verify integration tests compile without actually running them (faster feedback)
   compile-integration-tests:
@@ -127,7 +125,6 @@ jobs:
     with:
       working-directory: ${{ matrix.job-configs.working-directory }}
       python-version: ${{ matrix.job-configs.python-version }}
-    secrets: inherit
 
   # Run VCR cassette-backed integration tests in playback-only mode (no API keys)
   vcr-tests:
@@ -142,7 +139,6 @@ jobs:
     with:
       working-directory: ${{ matrix.job-configs.working-directory }}
       python-version: ${{ matrix.job-configs.python-version }}
-    secrets: inherit
 
   # Run extended test suites that require additional dependencies
   extended-tests:
